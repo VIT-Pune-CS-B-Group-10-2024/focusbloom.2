@@ -22,27 +22,54 @@ class TodoFrame(ttk.Frame):
         self.task_entry = ttk.Entry(add_frame, font=("Segoe UI", 13), width=30)
         self.task_entry.pack(side=tk.LEFT, padx=8, ipady=6)
         self.priority_var = tk.StringVar()
-        self.priority_combobox = ttk.Combobox(add_frame, textvariable=self.priority_var,
-                                              values=["High", "Medium", "Low"], state="readonly", font=("Segoe UI", 12), width=8)
+        self.priority_combobox = ttk.Combobox(
+            add_frame,
+            textvariable=self.priority_var,
+            values=["High", "Medium", "Low"],
+            state="readonly",
+            font=("Segoe UI", 12),
+            width=8
+        )
         self.priority_combobox.current(1)
         self.priority_combobox.pack(side=tk.LEFT, padx=8, ipady=3)
-        ttk.Button(add_frame, text="Add Task", command=self.add_task, style="TButton").pack(side=tk.LEFT, padx=8, ipadx=8, ipady=3)
+        ttk.Button(add_frame, text="Add Task", command=self.add_task, style="TButton").pack(
+            side=tk.LEFT, padx=8, ipadx=8, ipady=3
+        )
 
-        self.tree = ttk.Treeview(self, columns=("Priority", "Status"), show="headings", height=10)
+        # Treeview with Task column visible
+        self.tree = ttk.Treeview(
+            self,
+            columns=("Task", "Priority", "Status"),
+            show="headings",
+            height=10
+        )
+        self.tree.heading("Task", text="Task")
         self.tree.heading("Priority", text="Priority")
         self.tree.heading("Status", text="Status")
+        self.tree.column("Task", width=300, anchor='w')
         self.tree.column("Priority", width=100, anchor='center')
         self.tree.column("Status", width=100, anchor='center')
         self.tree.pack(fill="both", expand=True, padx=30, pady=15)
 
-        self.progress = ttk.Progressbar(self, orient="horizontal", length=400, mode="determinate")
+        self.progress = ttk.Progressbar(
+            self, orient="horizontal", length=400, mode="determinate"
+        )
         self.progress.pack(pady=10)
 
         btn_frame = ttk.Frame(self, style="TFrame")
         btn_frame.pack(pady=15)
-        ttk.Button(btn_frame, text="Mark Complete", command=self.mark_complete, style="TButton").pack(side=tk.LEFT, padx=10, ipadx=10, ipady=5)
-        ttk.Button(btn_frame, text="Delete Task", command=self.delete_task, style="TButton").pack(side=tk.LEFT, padx=10, ipadx=10, ipady=5)
-        ttk.Button(btn_frame, text="Back", command=lambda: self.controller.show_frame("WelcomeFrame"), style="TButton").pack(side=tk.LEFT, padx=10, ipadx=10, ipady=5)
+        ttk.Button(
+            btn_frame, text="Mark Complete", command=self.mark_complete, style="TButton"
+        ).pack(side=tk.LEFT, padx=10, ipadx=10, ipady=5)
+        ttk.Button(
+            btn_frame, text="Delete Task", command=self.delete_task, style="TButton"
+        ).pack(side=tk.LEFT, padx=10, ipadx=10, ipady=5)
+        ttk.Button(
+            btn_frame,
+            text="Back",
+            command=lambda: self.controller.show_frame("WelcomeFrame"),
+            style="TButton"
+        ).pack(side=tk.LEFT, padx=10, ipadx=10, ipady=5)
 
     def add_task(self):
         task = self.task_entry.get()
@@ -52,8 +79,10 @@ class TodoFrame(ttk.Frame):
             return
         conn = sqlite3.connect('mental_health_app.db')
         c = conn.cursor()
-        c.execute("INSERT INTO todos (user_id, task, priority) VALUES (?, ?, ?)",
-                 (self.controller.current_user, task, priority))
+        c.execute(
+            "INSERT INTO todos (user_id, task, priority) VALUES (?, ?, ?)",
+            (self.controller.current_user, task, priority)
+        )
         conn.commit()
         conn.close()
         self.task_entry.delete(0, tk.END)
@@ -64,13 +93,18 @@ class TodoFrame(ttk.Frame):
             self.tree.delete(item)
         conn = sqlite3.connect('mental_health_app.db')
         c = conn.cursor()
-        c.execute("SELECT id, task, priority, completed FROM todos WHERE user_id=?",
-                 (self.controller.current_user,))
+        c.execute(
+            "SELECT id, task, priority, completed FROM todos WHERE user_id=?",
+            (self.controller.current_user,)
+        )
         total = 0
         completed = 0
         for task in c.fetchall():
             status = "Complete" if task[3] else "Pending"
-            self.tree.insert("", "end", iid=task[0], values=(task[2], status), text=task[1])
+            # Insert all columns as values so Task is visible
+            self.tree.insert(
+                "", "end", iid=task[0], values=(task[1], task[2], status)
+            )
             total += 1
             if task[3]:
                 completed += 1
