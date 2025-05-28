@@ -1,4 +1,5 @@
 import tkinter as tk
+import datetime
 from tkinter import ttk, messagebox
 import sqlite3
 from datetime import date
@@ -67,7 +68,13 @@ class MoodReminderFrame(ttk.Frame):
 
     def show_mood_on_calendar(self):
         sel_date = self.calendar.get_date()
-        mood = self.mood_data.get(sel_date, "No entry")
+# Convert calendar date (e.g., '05/29/2025') to '2025-05-29'
+        try:
+            date_obj = datetime.datetime.strptime(sel_date, "%m/%d/%y")
+        except ValueError:
+            date_obj = datetime.datetime.strptime(sel_date, "%m/%d/%Y")
+        sel_date_db = date_obj.strftime("%Y-%m-%d")
+        mood = self.mood_data.get(sel_date_db, "No entry")
         self.mood_label.config(text=f"Mood on {sel_date}: {mood}")
 
     def set_reminder(self):
